@@ -10,7 +10,7 @@ live_design! {
 
     REGULAR_TEXT = {
         font_size: 10,
-        font: {path: dep("crate://makepad-widgets/resources/GoNotoKurrent-Regular.ttf")}
+        font: { path: dep("crate://self/resources/NotoSans-Regular.ttf") }
     }
 
     PerformanceLiveGraph = {{PerformanceLiveGraph}} {
