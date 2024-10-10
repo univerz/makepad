@@ -36,8 +36,10 @@ pub struct TextInput {
 
     #[live] pub is_read_only: bool,
     #[live] pub is_numeric_only: bool,
+    #[live] pub is_secret: bool,
     #[live] pub empty_message: String,
     #[live] pub text: String,
+    #[live] tmp_secret: String,
 
     #[rust] cursor: Cursor,
     #[rust] history: History,
@@ -99,7 +101,7 @@ impl TextInput {
             inner_walk,
             self.label_align,
             width,
-            &self.text,
+            self.get_text_to_render(),
             position,
         )
     }
@@ -111,7 +113,7 @@ impl TextInput {
             inner_walk,
             self.label_align,
             width,
-            &self.text,
+            self.get_text_to_render(),
             self.cursor.head,
         )
     }
@@ -219,18 +221,31 @@ impl TextInput {
         self.cursor.head.index = edit.start + edit.replace_with.len();
         self.cursor.tail = self.cursor.head;
         self.history.apply_edit(edit, &mut self.text);
+        self.update_secret();
     }
 
     fn undo(&mut self) {
         if let Some(cursor) = self.history.undo(self.cursor, &mut self.text) {
             self.cursor = cursor;
+            self.update_secret();
         }
     }
 
     fn redo(&mut self) {
         if let Some(cursor) = self.history.redo(self.cursor, &mut self.text) {
             self.cursor = cursor;
+            self.update_secret();
         }
+    }
+
+    fn update_secret(&mut self) {
+        if self.is_secret {
+            self.tmp_secret = std::iter::repeat("*").take(self.text.len()).collect::<String>();
+        }
+    }
+
+    fn get_text_to_render(&self) -> &str {
+        if self.is_secret{ &self.tmp_secret } else { &self.text }
     }
 }
 
@@ -560,6 +575,11 @@ impl Widget for TextInput {
 
         let inner_walk = self.inner_walk();
 
+        // TODO:
+        // let text = self.get_text_to_render();
+        let text = if self.is_secret{ &self.tmp_secret } else { &self.text };
+
+
         // Draw text
         if self.text.is_empty() {
             self.draw_text.is_empty = 1.0;
@@ -575,7 +595,7 @@ impl Widget for TextInput {
                 cx,
                 inner_walk,
                 self.label_align,
-                &self.text,
+                text,
             );
         }
 
@@ -587,7 +607,7 @@ impl Widget for TextInput {
             inner_walk,
             self.label_align,
             padded_rect.size.x,
-            &self.text,
+            text,
             self.cursor.head.min(self.cursor.tail),
             self.cursor.head.max(self.cursor.tail)
         );
@@ -630,6 +650,7 @@ impl Widget for TextInput {
             return;
         }
         self.text = self.filter_input(text.to_string());
+        
         self.cursor.head.index = self.cursor.head.index.min(text.len());
         self.cursor.tail.index = self.cursor.tail.index.min(text.len());
         self.history.clear();
