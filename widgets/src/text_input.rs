@@ -67,9 +67,10 @@ impl TextInput {
 
     pub fn filter_input(&mut self, input: String) -> String {
         if self.is_numeric_only {
+            let mut one_dot = self.text.find('.').is_some();
             input.chars().filter_map(|char| {
                 match char {
-                    '.' | ',' => Some('.'),
+                    '.' | ',' if !one_dot => { one_dot = true; Some('.') },
                     char if char.is_ascii_digit() => Some(char),
                     _ => None,
                 }
