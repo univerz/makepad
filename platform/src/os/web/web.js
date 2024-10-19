@@ -1031,9 +1031,9 @@ export class WasmWebBrowser extends WasmBridge {
     }
     
     bind_keyboard() {
-        if (this.detect.is_mobile_safari || this.detect.is_android) { // mobile keyboards are unusable on a UI like this. Not happening.
-            return
-        }
+        // if (this.detect.is_mobile_safari || this.detect.is_android) { // mobile keyboards are unusable on a UI like this. Not happening.
+        //     return
+        // }
         
         var ta = this.text_area = document.createElement('textarea')
         ta.className = "cx_webgl_textinput"
